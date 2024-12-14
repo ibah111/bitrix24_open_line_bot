@@ -1,0 +1,33 @@
+{
+  "GENERAL": {
+    "HOST": "0.0.0.0",
+    "PORT": 3000,
+    "SSL_KEY": "cert/private.key",
+    "SSL_CERT": "cert/certificate.crt",
+    "DEBUG": true
+  },
+  "BITRIX": {
+    "TOKEN": "",
+    "GET_FILE_ID_URL": "https://chat.nbkfinance.ru/chatbotsconnector/get_file_id.php",
+    "CLINET_ID": "",
+    "CLIENT_SECRET": "",
+    "CONNECTOR_ID": "telegram-bot",
+    "CONNECTOR_NAME": "Telegram",
+    "PLACEMENT_HANDLER": "https://chat.nbkfinance.ru/chatbotsconnector/javascript/handle.php?url=placement_handler",
+    "WIDGET_URI": "https://chat.nbkfinance.ru/",
+    "WIDGET_NAME": "Telegram",
+    "EVENTS": [
+      {
+        "name": "OnImConnectorStatusDelete",
+        "handler": "https://chat.nbkfinance.ru/chatbotsconnector/javascript/handle.php?url=on_status_delete"
+      },
+      {
+        "name": "OnImConnectorMessageAdd",
+        "handler": "https://chat.nbkfinance.ru/chatbotsconnector/javascript/handle.php?url=on_message_add"
+      }
+    ]
+  },
+  "TELEGRAM": {
+    "TOKEN": ""
+  }
+}
