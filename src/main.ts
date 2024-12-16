@@ -45,7 +45,13 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document, getSwaggerCustomOptions());
   await app.get(SqliteDatabaseSeed).sync();
   await app.listen(4500, '0.0.0.0');
-  console.log(`Server running on ` + `${await app.getUrl()}/docs`.yellow);
+  console.log(
+    `Server running on ` +
+      `${await app.getUrl()}/docs`.yellow.replace(
+        'http',
+        node === 'prod' ? 'https' : 'http',
+      ),
+  );
   console.log(`Bot launched`);
 }
 bootstrap();
