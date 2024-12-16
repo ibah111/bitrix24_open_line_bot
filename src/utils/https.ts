@@ -5,8 +5,8 @@ const __dirnames = process.cwd();
 export default function https() {
   if (fs.existsSync(path.join(__dirnames, 'https'))) {
     return {
-      key: fs.readFileSync(path.join(__dirnames, 'https', 'fastify.key')),
-      cert: fs.readFileSync(path.join(__dirnames, 'https', 'fastify.crt')),
+      key: fs.readFileSync(path.join(__dirnames, 'https', 'ssl.key')),
+      cert: fs.readFileSync(path.join(__dirnames, 'https', 'ssl.crt')),
     };
   }
 }
