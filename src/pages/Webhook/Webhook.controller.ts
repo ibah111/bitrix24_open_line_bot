@@ -11,6 +11,7 @@ import { Telegraf } from 'telegraf';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ImConnectorClass } from './Webhook.types';
 import { InjectBot } from 'nestjs-telegraf';
+import { formatText } from 'src/utils/textFormat';
 
 export const install_return_example = {
   GENERAL: {
@@ -397,13 +398,31 @@ export class WebhookController implements OnModuleInit {
     console.log('ONMESSAGEADD:'.yellow, body);
     const messages = body.data.MESSAGES;
     for (const message of messages) {
-      const chat_id = message.chat.id;
-      const text = message.message.text;
       console.log('Message: '.yellow, message);
-      await this.bot.telegram.sendMessage(chat_id, text).then(async (res) => {
-        console.log('result after sending a message: ', res);
-        await this.send_status_delivery(message);
-      });
+      const chat_id = message.chat.id;
+      const text = formatText(message.message.text);
+      const files = message.message.files;
+      if (text.length > 0) {
+        await this.bot.telegram
+          .sendMessage(chat_id, text, {
+            parse_mode: 'MarkdownV2',
+          })
+          .then(async (res) => {
+            console.log('result after sending a message: ', res);
+            await this.send_status_delivery(message);
+          });
+      }
+      console.log(files);
+      if (files) {
+        for (const file of files) {
+          const link = file.link;
+          await this.bot.telegram
+            .sendPhoto(chat_id, {
+              url: file.link,
+            })
+            .then(async (res) => await this.send_status_delivery(message));
+        }
+      }
     }
   }
 
