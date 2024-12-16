@@ -10,6 +10,7 @@ import { icon } from 'src/extensions/ext_exports';
 import { Telegraf } from 'telegraf';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ImConnectorClass } from './Webhook.types';
+import { InjectBot } from 'nestjs-telegraf';
 
 export const install_return_example = {
   GENERAL: {
@@ -62,7 +63,10 @@ export class WebhookController implements OnModuleInit {
     private readonly configService: ConfigService,
     @InjectModel(InstallModel, 'sqlite')
     private readonly installModel: typeof InstallModel,
-  ) {}
+    @InjectBot() bot: Telegraf,
+  ) {
+    this.bot = bot;
+  }
 
   async reinit_token() {
     const install_params = await this.installModel.findOne();
@@ -391,14 +395,23 @@ export class WebhookController implements OnModuleInit {
   @Post('on_message_add')
   async on_message_add(@Body() body: any) {
     console.log('ONMESSAGEADD:'.yellow, body);
-    return 'on message add touched';
+    const messages = body.data.MESSAGES;
+    for (const message of messages) {
+      const chat_id = message.chat.id;
+      const text = message.message.text;
+      console.log('Message: '.yellow, message);
+      await this.bot.telegram.sendMessage(chat_id, text).then(async (res) => {
+        console.log('result after sending a message: ', res);
+        await this.send_status_delivery(message);
+      });
+    }
   }
 
-  async send_status_delivery(MESSAGES: any[]) {
+  async send_status_delivery(MESSAGE) {
     const payload = {
       CONNECTOR: this.connector,
       LINE: this.open_line_id,
-      MESSAGES,
+      MESSAGES: [MESSAGE],
     };
     try {
       await lastValueFrom(
