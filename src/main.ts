@@ -5,10 +5,34 @@ import { SqliteDatabaseSeed } from './modules/database/sqlite.database/seed';
 import { AppModule } from './app.module';
 import { Telegraf } from 'telegraf';
 import 'colors';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
+import https from './utils/https';
+
 export const bot = new Telegraf(process.env.BOT_TOKEN);
 
+export const node = process.env.NODE_ENV;
+
+class bootstrapOptions {
+  constructor() {
+    this.adapter =
+      node === 'prod'
+        ? new FastifyAdapter({
+            https: https()!,
+          })
+        : new FastifyAdapter();
+  }
+  adapter: FastifyAdapter;
+}
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const options = new bootstrapOptions();
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    options.adapter,
+  );
   const config = new DocumentBuilder()
     .setVersion('1.0.0')
     .addTag('NBK_BOT')
