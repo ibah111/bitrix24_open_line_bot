@@ -54,9 +54,20 @@ export default class WebhookService implements OnModuleInit {
           },
         ],
       };
+      const avatars = await ctx.telegram.getUserProfilePhotos(ctx.chat.id);
+      let picture;
+      if (avatars.total_count > 0) {
+        const photo = avatars.photos[0][0];
+        const photo_id = photo.file_id;
+        const file_link = await ctx.telegram.getFileLink(photo_id);
+        picture = {
+          url: file_link,
+        };
+      }
       const user = {
         id: ctx.from.id,
         name: `${ctx.from.first_name} ${ctx.from.last_name}`,
+        picture,
       };
       await this.sendToBitrix(access_token, user, message, chat, hash);
     });
@@ -67,10 +78,20 @@ export default class WebhookService implements OnModuleInit {
       const chat = {
         id: ctx.chat.id,
       };
-
+      const avatars = await ctx.telegram.getUserProfilePhotos(ctx.chat.id);
+      let picture;
+      if (avatars.total_count > 0) {
+        const photo = avatars.photos[0][0];
+        const photo_id = photo.file_id;
+        const file_link = await ctx.telegram.getFileLink(photo_id);
+        picture = {
+          url: file_link,
+        };
+      }
       const user = {
         id: ctx.from.id,
         name: `${ctx.from.first_name} ${ctx.from.last_name}`,
+        picture,
       };
       const photo = ctx.message.photo;
       const photoId = photo[photo.length - 1].file_id;
@@ -107,9 +128,20 @@ export default class WebhookService implements OnModuleInit {
             text: ctx.message.text,
             date: ctx.message.date,
           };
+          const avatars = await ctx.telegram.getUserProfilePhotos(ctx.chat.id);
+          let picture;
+          if (avatars.total_count > 0) {
+            const photo = avatars.photos[0][0];
+            const photo_id = photo.file_id;
+            const file_link = await ctx.telegram.getFileLink(photo_id);
+            picture = {
+              url: file_link,
+            };
+          }
           const user = {
             id: ctx.from.id,
             name: `${ctx.from.first_name} ${ctx.from.last_name}`,
+            picture,
           };
 
           await this.sendToBitrix(access_token, user, message, chat, hash);
