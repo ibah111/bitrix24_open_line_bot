@@ -33,7 +33,13 @@ export default class WebhookService implements OnModuleInit {
 
     //on document
     this.bot.on('document', async (ctx) => {
-      console.log(document);
+      console.log('document: ', ctx.message.document);
+      const document = ctx.message.document;
+      const file_id = document.file_id;
+      const getLink = await ctx.telegram.getFileLink(file_id);
+      console.log('getLink', getLink);
+      const URL = getLink.href;
+      const NAME = document.file_name;
       const chat = {
         id: ctx.chat.id,
       };
@@ -41,15 +47,18 @@ export default class WebhookService implements OnModuleInit {
         id: `${ctx.chat.id}-${ctx.message.message_id}`,
         text: `Пользователь ${ctx.from.first_name} ${ctx.from.last_name} прислал документ.`,
         date: ctx.message.date,
+        files: [
+          {
+            URL,
+            NAME,
+          },
+        ],
       };
       const user = {
         id: ctx.from.id,
         name: `${ctx.from.first_name} ${ctx.from.last_name}`,
       };
-
-      const file_id = ctx.message.document.file_id;
-      const file_url = await ctx.telegram.getFileLink(file_id);
-      console.log(file_url);
+      await this.sendToBitrix(access_token, user, message, chat, hash);
     });
     /**
      * photo
@@ -66,11 +75,9 @@ export default class WebhookService implements OnModuleInit {
       const photo = ctx.message.photo;
       const photoId = photo[photo.length - 1].file_id;
       const getLink = await ctx.telegram.getFileLink(photoId);
-      console.log(getLink, photo);
-      const URL = getLink.href;
       const str_arr = getLink.href.split('/');
-      console.log(`str_arr`, str_arr);
       const NAME = str_arr[str_arr.length - 1];
+      const URL = getLink.href;
       const message = {
         id: `${ctx.chat.id}-${ctx.message.message_id}`,
         text: `Пользователь ${ctx.from.first_name} ${ctx.from.last_name} прислал изображение.`,
@@ -89,15 +96,8 @@ export default class WebhookService implements OnModuleInit {
      * text
      */
     this.bot.on('text', async (ctx) => {
-      console.log(ctx);
       const message = ctx.message.text;
       if (message) {
-        const content = message.replace('/to_b24', '').trim();
-
-        if (!content) {
-          return ctx.reply('Введите текст сообщения после команды /to_b24.');
-        }
-
         try {
           const chat = {
             id: ctx.chat.id,
@@ -127,18 +127,6 @@ export default class WebhookService implements OnModuleInit {
     });
   }
 
-  async uploadFile(access_token: string) {
-    const payload = {};
-    try {
-      await lastValueFrom(
-        this.httpService.post(
-          `${this.bitrixWebhook}disk.folder.uploadfile?auth=${access_token}`,
-          payload,
-        ),
-      );
-    } catch (error) {}
-  }
-
   private async sendToBitrix(access_token: string, user, message, chat, hash) {
     const payload = {
       LINE: 29,
@@ -152,13 +140,12 @@ export default class WebhookService implements OnModuleInit {
       ],
     };
     try {
-      const request = await lastValueFrom(
+      return await lastValueFrom(
         this.httpService.post(
           `${this.bitrixWebhook}/imconnector.send.messages?auth=${access_token}&hash=${hash}`,
           payload,
         ),
       );
-      console.log('DATA RESULT: ', request.data.result.DATA.RESULT);
     } catch (error) {
       console.log('error: '.red, error);
       throw Error();
