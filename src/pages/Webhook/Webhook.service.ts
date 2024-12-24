@@ -49,11 +49,7 @@ export default class WebhookService implements OnModuleInit {
 
       const file_id = ctx.message.document.file_id;
       const file_url = await ctx.telegram.getFileLink(file_id);
-      const fileName = ctx.message.document.file_name;
-      const writer = fs.createWriteStream(fileName);
-      const responce = await axios.get(file_url.href, {
-        responseType: 'stream',
-      });
+      console.log(file_url);
     });
     /**
      * photo
@@ -62,28 +58,31 @@ export default class WebhookService implements OnModuleInit {
       const chat = {
         id: ctx.chat.id,
       };
-      const message = {
-        id: `${ctx.chat.id}-${ctx.message.message_id}`,
-        text: `Пользователь ${ctx.from.first_name} ${ctx.from.last_name} прислал изображение.`,
-        date: ctx.message.date,
-      };
+
       const user = {
         id: ctx.from.id,
         name: `${ctx.from.first_name} ${ctx.from.last_name}`,
       };
-      const files = {};
       const photo = ctx.message.photo;
       const photoId = photo[photo.length - 1].file_id;
-      const fileUrl = await ctx.telegram.getFileLink(photoId);
-      await this.sendToBitrix(
-        access_token,
-        user,
-        message,
-        chat,
-        hash,
-        fileUrl.href,
-      );
-      console.log('photo: ', photo, '\nfileUrl; ', fileUrl);
+      const getLink = await ctx.telegram.getFileLink(photoId);
+      console.log(getLink, photo);
+      const URL = getLink.href;
+      const str_arr = getLink.href.split('/');
+      console.log(`str_arr`, str_arr);
+      const NAME = str_arr[str_arr.length - 1];
+      const message = {
+        id: `${ctx.chat.id}-${ctx.message.message_id}`,
+        text: `Пользователь ${ctx.from.first_name} ${ctx.from.last_name} прислал изображение.`,
+        date: ctx.message.date,
+        files: [
+          {
+            URL,
+            NAME,
+          },
+        ],
+      };
+      await this.sendToBitrix(access_token, user, message, chat, hash);
     });
 
     /**
@@ -140,16 +139,7 @@ export default class WebhookService implements OnModuleInit {
     } catch (error) {}
   }
 
-  private async sendToBitrix(
-    access_token: string,
-    user,
-    message,
-    chat,
-    hash,
-    file_url?,
-  ) {
-    console.log('sending message access_token', access_token);
-
+  private async sendToBitrix(access_token: string, user, message, chat, hash) {
     const payload = {
       LINE: 29,
       CONNECTOR: 'openlinechatbot',
@@ -168,7 +158,7 @@ export default class WebhookService implements OnModuleInit {
           payload,
         ),
       );
-      console.log(request.data.result.DATA.RESULT);
+      console.log('DATA RESULT: ', request.data.result.DATA.RESULT);
     } catch (error) {
       console.log('error: '.red, error);
       throw Error();
