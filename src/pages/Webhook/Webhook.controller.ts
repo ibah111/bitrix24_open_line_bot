@@ -395,7 +395,6 @@ export class WebhookController implements OnModuleInit {
 
   @Post('on_message_add')
   async on_message_add(@Body() body: any) {
-    console.log('ONMESSAGEADD:'.yellow, body);
     const messages = body.data.MESSAGES;
     for (const message of messages) {
       console.log('Message: '.yellow, message);
@@ -412,15 +411,27 @@ export class WebhookController implements OnModuleInit {
             await this.send_status_delivery(message);
           });
       }
-      console.log(files);
       if (files) {
         for (const file of files) {
+          const mime = file.mime;
           const link = file.link;
-          await this.bot.telegram
-            .sendPhoto(chat_id, {
-              url: file.link,
-            })
-            .then(async (res) => await this.send_status_delivery(message));
+          switch (mime) {
+            case 'image/png': {
+              await this.bot.telegram
+                .sendPhoto(chat_id, {
+                  url: link,
+                })
+                .then(async () => await this.send_status_delivery(message));
+            }
+            default: {
+              await this.bot.telegram
+                .sendDocument(chat_id, {
+                  filename: file.name,
+                  url: file.link,
+                })
+                .then(async () => this.send_status_delivery(message));
+            }
+          }
         }
       }
     }
