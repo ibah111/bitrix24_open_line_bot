@@ -13,6 +13,13 @@ export default class WebhookOperatorWizard extends ExtendWizard {
     super();
   }
 
+  @WizardStep(1)
+  protected onSceneEnter(@Ctx() ctx: WizardContext) {
+    ctx.reply(
+      'Ваше обращение передано в открытую линию. Вам ответит первый освободившийся оператор.',
+    );
+  }
+
   @On('text')
   protected async onText(
     @Ctx()

@@ -56,6 +56,7 @@ export class WebhookController implements OnModuleInit {
   readonly bitrixWebhook: string =
     this.configService.get<string>('BITRIX_WEBHOOK');
   access_token: string;
+  hash: string;
   connector: string = install_return_example.BITRIX.CONNECTOR_ID;
   open_line_id: number = 29;
   constructor(
@@ -72,7 +73,9 @@ export class WebhookController implements OnModuleInit {
   async reinit_token() {
     const install_params = await this.installModel.findOne();
     const access_token = install_params.auth_access_token;
+    const hash = install_params.auth_application_token;
     this.access_token = access_token;
+    this.hash = hash;
   }
 
   async onModuleInit() {
