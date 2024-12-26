@@ -1,11 +1,14 @@
 import { Action, Ctx, Hears, Wizard, WizardStep } from 'nestjs-telegraf';
-import { MENU_SCENE_ID } from 'src/app.constants';
+import { MENU_SCENE_ID, WEBHOOK_OPERATOR_WIZARD } from 'src/app.constants';
+import { ExtendWizard } from 'src/utils/ExtendWizard';
 import { Markup } from 'telegraf';
 import { WizardContext } from 'telegraf/typings/scenes';
 
 @Wizard(MENU_SCENE_ID)
-export default class MenuWizard {
-  constructor() {}
+export default class MenuWizard extends ExtendWizard {
+  constructor() {
+    super();
+  }
 
   @WizardStep(1)
   async menu(@Ctx() ctx: WizardContext) {
@@ -37,18 +40,6 @@ export default class MenuWizard {
       ]),
     );
   }
-  /** */
-  @Action('requisites')
-  async requisitesAction() {}
-
-  @Action('qrcode')
-  async qrcodeAction() {}
-
-  @Action('internetAcquiring')
-  async internetAcquiringAction() {}
-
-  @Action('fastPaymentSystem')
-  async fastPaymentSystemAction() {}
 
   /** */
 
@@ -58,10 +49,8 @@ export default class MenuWizard {
   }
   @Hears('Оператор')
   async operatorHears(@Ctx() ctx: WizardContext) {
-    ctx.reply('Реквизиты!');
-    /**
-     * Вход в диалоговое окно с контакнт центром
-     */
+    await this.leave(ctx).then(() => ctx.scene.enter(WEBHOOK_OPERATOR_WIZARD));
+    ctx.reply('Перенаправляю вас на оператора');
   }
   @Hears('Юр.информация')
   async requisitesHears(@Ctx() ctx: WizardContext) {
