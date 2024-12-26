@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { sessionMiddleWare } from 'src/utils/sessionMiddleware';
 import { UserModule } from 'src/pages/User/User.module';
 import MenuModule from 'src/pages/Menu/Menu.module';
+import WebhookModule from 'src/pages/Webhook/Webhook.module';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import MenuModule from 'src/pages/Menu/Menu.module';
       useFactory: (config: ConfigService) => ({
         token: config.get<string>('bot.token'),
         middlewares: [sessionMiddleWare],
-        include: [UserModule, MenuModule],
+        include: [UserModule, MenuModule, WebhookModule],
       }),
       inject: [ConfigService],
     }),
