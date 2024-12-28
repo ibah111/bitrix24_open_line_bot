@@ -1,7 +1,11 @@
-import { Ctx, On, Wizard, WizardStep } from 'nestjs-telegraf';
-import { WEBHOOK_OPERATOR_WIZARD } from 'src/app.constants';
+import { Ctx, Hears, On, Wizard, WizardStep } from 'nestjs-telegraf';
+import {
+  fileUrl,
+  MENU_SCENE_ID,
+  WEBHOOK_OPERATOR_WIZARD,
+} from 'src/app.constants';
 import { ExtendWizard } from 'src/utils/ExtendWizard';
-import { Context, NarrowedContext } from 'telegraf';
+import { Context, Markup, NarrowedContext } from 'telegraf';
 import { Message, Update } from 'telegraf/typings/core/types/typegram';
 import { WizardContext } from 'telegraf/typings/scenes';
 import WebhookService from './Webhook.service';
@@ -158,5 +162,36 @@ export default class WebhookOperatorWizard extends ExtendWizard {
       picture,
     };
     await this.webhookService.sendToBitrix(user, message, chat);
+  }
+
+  @Hears('Оплата')
+  async paymentHears(@Ctx() ctx: WizardContext) {
+    ctx.replyWithMarkdown(
+      'Каким методом вам будет провести оплату?',
+      Markup.inlineKeyboard([
+        [
+          Markup.button.callback('Реквизиты', 'requisites'),
+          Markup.button.callback('QR код', 'qrcode'),
+          Markup.button.callback('Интернет-эквайринг', 'internetAcquiring'),
+          Markup.button.callback('СБП', 'fastPaymentSystem'),
+        ],
+      ]),
+    );
+  }
+
+  @Hears('Сайт')
+  async siteHears(@Ctx() ctx: WizardContext) {
+    ctx.reply('Ссылка на сайт кампании: https://pkonbk.ru/');
+  }
+  @Hears('Оператор')
+  async operatorHears(@Ctx() ctx: WizardContext) {
+    await this.leave(ctx).then(() => ctx.scene.enter(WEBHOOK_OPERATOR_WIZARD));
+    ctx.reply('Перенаправляю вас на оператора');
+  }
+  @Hears('Юр.информация')
+  async requisitesHears(@Ctx() ctx: WizardContext) {
+    ctx.sendDocument(fileUrl);
+    ctx.scene.leave();
+    ctx.reply('Возвращаю в меню.').then(() => ctx.scene.enter(MENU_SCENE_ID));
   }
 }
